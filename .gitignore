@@ -1,0 +1,6 @@
+research/font-src/
+research/ne10.geojson
+research/specimen.html
+tools/__pycache__/
+node_modules/
+*.pyc
