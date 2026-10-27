@@ -125,7 +125,7 @@ def main():
             f'{strike()}{gaza(used)}{west_bank(used)}{pair("jerusalem", "prisoners", used)}{threads()}'
             f'{pair("politics", "world", used)}{life(used)}{alerts_band()}</main>')
     page = (sh.head(sh.SITE, 'Breaking news from Palestine in English. First the flash, then the facts.', 'home.html')
-            + sh.top(boot=True) + sh.dateline() + body + sh.foot())
+            + sh.top() + sh.dateline() + body + sh.foot())
     open(os.path.join(ROOT, 'home.html'), 'w', encoding='utf-8').write(page)
     print('home.html', len(page) // 1024, 'KB')
 

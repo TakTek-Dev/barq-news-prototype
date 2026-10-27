@@ -9,7 +9,7 @@ import json
 import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-V = '1'                                         # bump on any asset change (Chrome caches hard)
+V = '2'                                         # bump on any asset change (Chrome caches hard)
 SITE = 'Barq News'
 BASE_URL = 'https://taktek-dev.github.io/barq-news-prototype/'
 E = json.load(open(os.path.join(ROOT, 'tools', 'edition.json'), encoding='utf-8'))
@@ -278,7 +278,7 @@ def head(title, desc, path, og=None, extra=''):
 <link rel="preload" href="{C.R}assets/fonts/funnel-display.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="{C.R}assets/fonts/funnel-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{C.R}assets/css/barq.css?v={V}">
-<script>try{{var t=localStorage.getItem('barq-theme');if(t)document.documentElement.dataset.theme=t}}catch(e){{}}</script>
+<script>try{{var d=document.documentElement,t=localStorage.getItem('barq-theme');if(t)d.dataset.theme=t;if(sessionStorage.getItem('barq-nav')){{sessionStorage.removeItem('barq-nav');d.classList.add('nav-in')}}}}catch(e){{}}</script>
 {extra}</head>'''
 
 
@@ -295,11 +295,12 @@ def wire():
 </div>'''
 
 
-def top(current=None, boot=False):
+def top(current=None, boot=True):
     nav = ''.join(f'<a href="{C.R}{slug}.html"{" aria-current=\"page\"" if slug == current else ""}>{lab}</a>' for slug, lab in NAV)
     loader = (f'<div class="boot" aria-hidden="true">{boot_svg()}<div class="flash"></div><div class="cap">First the flash, then the facts</div></div>' if boot else '')
+    veil = f'<div class="veil" aria-hidden="true">{bolt_svg()}</div>'
     return f'''<body>
-{loader}<a class="skip" href="#main">Skip to the news</a>
+{loader}{veil}<a class="skip" href="#main">Skip to the news</a>
 {SPRITE}
 {wire()}
 <header class="mast">

@@ -37,6 +37,38 @@
       d.addEventListener('keydown', (e) => { if (e.key === 'Escape') { clearTimeout(t); end(); } }, { once: true });
     }
   }
+  // page to page: cover the old page with the storm, then go; the next page lifts it (see the head script)
+  const internal = (a, e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return null;
+    if ((a.target && a.target !== '_self') || a.hasAttribute('download')) return null;
+    const u = new URL(a.href, location.href);
+    if (u.origin !== location.origin || !/^https?:$/.test(u.protocol)) return null;
+    if (u.pathname === location.pathname && u.search === location.search) return null;   // same page, an anchor
+    return u;
+  };
+  if (!calm) {
+    d.addEventListener('click', (e) => {
+      const a = e.target.closest('a[href]');
+      const u = a && internal(a, e);
+      if (!u) return;
+      e.preventDefault();
+      try { sessionStorage.setItem('barq-nav', '1'); } catch (er) {}
+      root.classList.add('nav-out');
+      setTimeout(() => { location.href = u.href; }, 300);
+    });
+    // warm the next page while the pointer is on its link
+    const warmed = new Set();
+    d.addEventListener('pointerover', (e) => {
+      const a = e.target.closest('a[href]');
+      if (!a || warmed.has(a.href) || !internal(a, { button: 0 })) return;
+      warmed.add(a.href);
+      const l = d.createElement('link'); l.rel = 'prefetch'; l.href = a.href; d.head.appendChild(l);
+    });
+  }
+  // back/forward from the cache: never come back to a covered page
+  addEventListener('pageshow', (e) => { if (e.persisted) root.classList.remove('nav-out', 'nav-in'); });
+  setTimeout(() => root.classList.remove('nav-in'), 700);
+
   const ready = (fn) => (d.querySelector('.boot') ? d.addEventListener('barq:ready', fn, { once: true }) : fn());
 
   // wire: pause, clock in Jerusalem, a flicker each time the run loops
