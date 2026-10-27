@@ -63,7 +63,7 @@ def main():
 .sw{display:grid;gap:4px}.sw i{height:96px;border-radius:var(--r-3);background:var(--c);border:1px solid var(--rule)}
 .sw b{font:700 16px/1.2 var(--f-display);margin-top:6px}.sw small{color:var(--slate);font-size:13.5px;line-height:1.4}
 .ramp{display:flex;gap:6px;margin-top:20px}.ramp span{flex:1;height:44px;border-radius:10px;background:var(--c);display:grid;place-items:end start;padding:8px;font:600 11px var(--f-mono);color:#fff}
-.ramp span:nth-child(n+3){color:var(--ink)}
+.ramp span:nth-child(n+2){color:#0C0D16}
 .faces{display:grid;gap:22px;margin-top:32px}
 .face{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;padding-top:22px;border-top:1px solid var(--rule)}
 .face .s{font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-.03em}
@@ -83,7 +83,7 @@ def main():
 <section class="cover"><div class="wrap">{wm_cover}
 <p>Barq News · identity book · {sh.day(sh.NOW, True)}</p>
 <h1>Breaking news from Palestine. First the flash, then the facts.</h1>
-<div style="display:flex;gap:10px;margin-top:32px;flex-wrap:wrap"><a class="btn ion" href="home.html">Open the site</a><a class="btn" style="background:#24273B" href="assets/barq-identity.zip" download>Download the kit · {kb} KB</a></div></div></section>
+<div style="display:flex;gap:10px;margin-top:32px;flex-wrap:wrap"><a class="btn ion" href="home.html">Open the site</a><a class="btn" style="background:#24273B;color:#fff" href="assets/barq-identity.zip" download>Download the kit · {kb} KB</a></div></div></section>
 
 <section><div class="wrap"><span class="num">01 · IDEA</span><h2>Light arrives before thunder.</h2>
 <p class="lede">Barq is Arabic for lightning. In a storm you see the flash, then you count, then you hear it. Breaking news works the same way: first a flash, then the facts. The identity is built on that gap. Every story shows when it was first seen and whether it is still developing; every mark is the flash, and the facts are set calmly around it.</p></div></section>
@@ -91,7 +91,7 @@ def main():
 <section><div class="wrap"><span class="num">02 · THE MARK</span><h2>The q strikes.</h2>
 <p class="lede">The name ends in q, the one letter with a tail. The tail is struck as a bolt, the width of the stem it replaces, so the word carries its own flash without a lightning icon beside it. Drawn from Funnel Display 800; every straight corner rounded at 22 of 1200 units, the tip at 12, so the cut stays soft.</p>
 <div class="g2">{construction()}<div class="tiles"><img src="assets/brand/barq-tile-ion.svg" width="180" height="180" alt="Barq app tile, white q on ion violet"><img src="assets/brand/barq-tile-storm.svg" width="120" height="120" alt="Barq app tile on storm"><img src="favicon.svg" width="48" height="48" alt="Barq favicon"><img src="favicon.svg" width="24" height="24" alt=""><img src="favicon.svg" width="16" height="16" alt=""></div></div>
-<div class="lock"><div style="background:var(--paper);border:1px solid var(--rule)"><img src="assets/brand/barq-wordmark-ink.svg" alt="Barq wordmark in ink"></div><div style="background:var(--storm)"><img src="assets/brand/barq-wordmark-white.svg" alt="Barq wordmark in white on storm"></div><div style="background:var(--glow)"><img src="assets/brand/barq-wordmark-ion.svg" alt="Barq wordmark in ion"></div></div>
+<div class="lock"><div style="background:var(--paper);border:1px solid var(--rule)"><img src="assets/brand/barq-wordmark-ink.svg" width="190" height="84" alt="Barq wordmark in ink"></div><div style="background:var(--storm)"><img src="assets/brand/barq-wordmark-white.svg" width="190" height="84" alt="Barq wordmark in white on storm"></div><div style="background:var(--glow)"><img src="assets/brand/barq-wordmark-ion.svg" width="190" height="84" alt="Barq wordmark in ion"></div></div>
 <div class="dont">
 <div>{sh.wordmark()}Keep the bolt the colour of the word. Two colours split the name.</div>
 <div><span style="display:block;transform:skewX(-14deg)">{sh.wordmark()}</span>Never slant it for speed. The bolt already moves.</div>

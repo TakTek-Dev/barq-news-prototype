@@ -102,6 +102,10 @@
       mb.setAttribute('aria-expanded', String(o));
       $('use', mb).setAttribute('href', o ? '#i-close' : '#i-menu');
     });
+    d.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !nav.classList.contains('open')) return;
+      nav.classList.remove('open'); mb.setAttribute('aria-expanded', 'false'); $('use', mb).setAttribute('href', '#i-menu'); mb.focus();
+    });
   }
 
   // photos fade in once decoded
@@ -217,7 +221,7 @@
       if (!ws.length) { out.innerHTML = ''; count.textContent = `${idx.length} stories in this edition`; return; }
       const hits = idx.filter((it) => ws.every((w) => it.k.includes(w)));
       count.textContent = `${hits.length} ${hits.length === 1 ? 'story' : 'stories'} for “${sbox.value.trim()}”`;
-      out.innerHTML = '<ul class="rows">' + hits.map((it) => `<li><a class="row" href="${base}${it.u}">${it.p ? `<div class="ph"><img src="${base}${it.p}" alt="" loading="lazy" width="400" height="300"></div>` : '<div class="ph plate"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M6.2.6 2 5.6h2.9L3.6 9.4 8 4.2H5.1z" fill="currentColor"/></svg></div>'}<div class="txt"><span class="kicker">${esc(it.s)}</span><h3 class="h-s">${mark(it.h, ws)}</h3><p class="dek">${mark(it.d, ws)}</p><span class="meta"><time>${esc(it.w)}</time></span></div></a></li>`).join('') + '</ul>';
+      out.innerHTML = '<ul class="rows">' + hits.map((it) => `<li><a class="row" href="${base}${it.u}">${it.p ? `<div class="ph"><img src="${base}${it.p}" alt="" loading="lazy" width="400" height="300"></div>` : '<div class="ph plate"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M6.2.6 2 5.6h2.9L3.6 9.4 8 4.2H5.1z" fill="currentColor"/></svg></div>'}<div class="txt"><span class="kicker">${esc(it.s)}</span><h2 class="h-s">${mark(it.h, ws)}</h2><p class="dek">${mark(it.d, ws)}</p><span class="meta"><time>${esc(it.w)}</time></span></div></a></li>`).join('') + '</ul>';
     };
     const q0 = new URLSearchParams(location.search).get('q'); if (q0) sbox.value = q0;
     sbox.addEventListener('input', go);

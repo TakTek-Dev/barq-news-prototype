@@ -14,6 +14,7 @@ os.makedirs(OUT, exist_ok=True)
 UA = {'User-Agent': 'BarqNews-prototype/1.0 (TakTek design prototype; en.developer2 at gmail)'}
 STANDARD = [500, 960, 1280, 1920]
 NEED = 1000
+THUMB = 480
 
 
 def api(title, width):
@@ -59,6 +60,11 @@ def main():
             continue
         im = Image.open(out)
         meta[slug] = {'w': im.size[0], 'h': im.size[1]}
+        small = os.path.join(OUT, slug + '-480.webp')     # thumbnails and phone cards pick this through srcset
+        if not os.path.exists(small):
+            t = im.convert('RGB')
+            t.thumbnail((THUMB, THUMB))
+            t.save(small, 'WEBP', quality=74, method=6)
         credits.append(f"- `{slug}.webp` — [{p['file'][5:]}]({p['page_url']}) · {p['author']} · {p['license']} · "
                        f"{p.get('date', '')} · resized, colour as taken")
     os.makedirs(os.path.join(ROOT, 'tools', 'out'), exist_ok=True)

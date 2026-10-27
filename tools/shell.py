@@ -10,7 +10,7 @@ import os
 import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-V = '4'                                         # bump on any asset change (Chrome caches hard)
+V = '5'                                         # bump on any asset change (Chrome caches hard)
 SITE = 'Barq News'
 BASE_URL = 'https://taktek-dev.github.io/barq-news-prototype/'
 E = json.load(open(os.path.join(ROOT, 'tools', 'edition.json'), encoding='utf-8'))
@@ -174,7 +174,9 @@ def photo(slug, cls='', sizes='(max-width: 720px) 100vw, 50vw', eager=False, alt
     dim = DIM.get(slug, {'w': 1000, 'h': 667})
     a = esc(p['alt'] if alt is None else alt)
     lz = 'fetchpriority="high"' if eager else 'loading="lazy" decoding="async"'
-    return (f'<div class="ph {cls}"><img src="{C.R}assets/img/photo/{slug}.webp?v={V}" alt="{a}" '
+    base = f'{C.R}assets/img/photo/{slug}'
+    srcset = f'{base}-480.webp?v={V} 480w, {base}.webp?v={V} {dim["w"]}w'
+    return (f'<div class="ph {cls}"><img src="{base}.webp?v={V}" srcset="{srcset}" alt="{a}" '
             f'width="{dim["w"]}" height="{dim["h"]}" {lz} sizes="{sizes}"></div>')
 
 
@@ -274,7 +276,7 @@ def flash_map(items, cls='map', labels=True, focus=None, r=None, zoom=False, asp
         band = age_band(s)
         now = ' now' if s['status'] == 'developing' and band == 1 else ''
         dots.append(f'<a href="{url(s)}" class="fl{now}" data-id="{s["id"]}" data-t="{int(when(s).timestamp())}" data-age="{band}" style="--c:var(--age-{band})" aria-label="{esc(s["place"])}: {esc(s["headline"])}">'
-                    f'<circle class="ring" cx="{x:.1f}" cy="{y:.1f}" r="{rr:.2f}"/><circle class="core" cx="{x:.1f}" cy="{y:.1f}" r="{rr:.2f}"/></a>')
+                    f'<circle class="hit" cx="{x:.1f}" cy="{y:.1f}" r="{rr * 3.2:.2f}"/><circle class="ring" cx="{x:.1f}" cy="{y:.1f}" r="{rr:.2f}"/><circle class="core" cx="{x:.1f}" cy="{y:.1f}" r="{rr:.2f}"/></a>')
     if focus:
         x, y = project(*focus)
         fr = rr * 1.7
@@ -373,7 +375,7 @@ def head(title, desc, path, og=None, extra=''):
 
 def wire():
     items = E['ticker']
-    one = ''.join(f'<a href="{url(BY[t["id"]])}"><time>{esc(t["time"])}</time>{esc(t["text"])}</a>' for t in items)
+    one = ''.join(f'<a href="{url(BY[t["id"]])}"><time>{esc(t["time"])}</time><span class="vh">, </span>{esc(t["text"])}</a>' for t in items)
     return f'''<div class="wire" role="region" aria-label="Latest flashes">
 <div class="wrap">
 <span class="wire-label">{bolt_svg()}FLASH</span>
@@ -395,11 +397,11 @@ def top(current=None, boot=True):
 <header class="mast">
 <div class="wrap">
 <a class="logo" href="{C.R}home.html" aria-label="Barq News, home">{wordmark(label=False)}<span class="news">News</span></a>
-<nav class="nav" aria-label="Sections">{nav}</nav>
+<nav class="nav" id="site-nav" aria-label="Sections">{nav}</nav>
 <div class="mast-tools">
 <a class="tool" href="{C.R}search.html" aria-label="Search">{icon('i-search')}</a>
-<a class="btn" href="{C.R}alerts.html">{bolt_svg()}<span>Get alerts</span></a>
-<button class="tool menu-btn" type="button" aria-expanded="false" aria-label="Sections menu"><svg aria-hidden="true"><use href="#i-menu"/></svg></button>
+<a class="btn" href="{C.R}alerts.html" aria-label="Get alerts">{bolt_svg()}<span aria-hidden="true">Get alerts</span></a>
+<button class="tool menu-btn" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Sections menu"><svg aria-hidden="true"><use href="#i-menu"/></svg></button>
 </div>
 </div>
 </header>'''
@@ -418,9 +420,9 @@ def foot():
 <div class="foot-grid">
 <div><a class="logo" href="{C.R}home.html" aria-label="Barq News, home">{wordmark(label=False)}</a>
 <p>Breaking news from Palestine, in English. First the flash, then the facts: every story says when it was first seen, whether it is still developing, and where it comes from.</p></div>
-<div><h3>Sections</h3><ul>{secs}</ul></div>
-<div><h3>Barq</h3><ul><li><a href="{C.R}live.html">The wire</a></li><li><a href="{C.R}map.html">Flash map</a></li><li><a href="{C.R}archive.html">Archive</a></li><li><a href="{C.R}sources.html">Our sources</a></li><li><a href="{C.R}search.html">Search</a></li></ul></div>
-<div><h3>Reach us</h3><ul><li><a href="{C.R}alerts.html">Alerts</a></li><li><a href="{C.R}tips.html">Send a tip</a></li><li><a href="{C.R}about.html">About and standards</a></li><li><a href="{C.R}about.html#corrections">Corrections</a></li><li><a href="{C.R}privacy.html">Privacy</a></li><li><a href="{C.R}index.html">Identity book</a></li><li><a href="{C.R}credits.html">Photo credits</a></li></ul></div>
+<div><h2>Sections</h2><ul>{secs}</ul></div>
+<div><h2>Barq</h2><ul><li><a href="{C.R}live.html">The wire</a></li><li><a href="{C.R}map.html">Flash map</a></li><li><a href="{C.R}archive.html">Archive</a></li><li><a href="{C.R}sources.html">Our sources</a></li><li><a href="{C.R}search.html">Search</a></li></ul></div>
+<div><h2>Reach us</h2><ul><li><a href="{C.R}alerts.html">Alerts</a></li><li><a href="{C.R}tips.html">Send a tip</a></li><li><a href="{C.R}about.html">About and standards</a></li><li><a href="{C.R}about.html#corrections">Corrections</a></li><li><a href="{C.R}privacy.html">Privacy</a></li><li><a href="{C.R}index.html">Identity book</a></li><li><a href="{C.R}credits.html">Photo credits</a></li></ul></div>
 </div>
 <div class="foot-base"><span>Design prototype by TakTek · stories summarised from the outlets each one cites · edition of {day(NOW, True)}</span>
 <span class="theme-sw" role="group" aria-label="Colour theme"><button type="button" data-theme-set="light">Light</button><button type="button" data-theme-set="auto">Auto</button><button type="button" data-theme-set="dark">Dark</button></span></div>

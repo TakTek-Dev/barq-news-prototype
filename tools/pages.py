@@ -207,7 +207,7 @@ def search():
     for s in latest():
         idx.append({'u': f'story/{s["id"]}.html', 'h': s['headline'], 'd': s['dek'], 's': SEC[s['section']][1],
                     'w': sh.stamp(s, True) + ' · ' + s['place'],
-                    'p': f'assets/img/photo/{s["photo"]}.webp?v={sh.V}' if s.get('photo') else '',
+                    'p': f'assets/img/photo/{s["photo"]}-480.webp?v={sh.V}' if s.get('photo') else '',
                     'k': ' '.join([s['headline'], s['dek'], s['place'], s['region'], SEC[s['section']][1], ' '.join(s.get('tags', [])), ' '.join(s['body'])]).lower()})
     os.makedirs(os.path.join(ROOT, 'assets', 'data'), exist_ok=True)
     json.dump(idx, open(os.path.join(ROOT, 'assets', 'data', 'search.json'), 'w', encoding='utf-8'), ensure_ascii=False)
@@ -230,7 +230,7 @@ def credits():
             used.setdefault(s['photo'], []).append(s)
     rows_ = ''.join(
         f'<li class="row" style="grid-template-columns:132px minmax(0,1fr)">{photo(k, "", "132px")}<div class="txt"><span class="h-xs">{esc(E["photos"][k]["caption"])}</span>'
-        f'<span class="meta"><span>{esc(E["photos"][k]["author"])}</span><span>{esc(E["photos"][k]["license"])}</span><a href="{esc(E["photos"][k]["page_url"])}" rel="noopener" style="text-decoration:underline">Commons file</a></span></div></li>'
+        f'<span class="meta"><span>{esc(E["photos"][k]["author"])}</span><span>{esc(E["photos"][k]["license"])}</span><a class="cf" href="{esc(E["photos"][k]["page_url"])}" rel="noopener">Commons file</a></span></div></li>'
         for k in sorted(used))
     body = f'''<main id="main">
 <header class="phead"><div class="wrap"><span class="kicker">{sh.bolt_svg()}Credits</span><h1>Photo credits</h1>
@@ -314,7 +314,7 @@ def place_pages():
 <span class="kicker">{sh.bolt_svg()}Place</span><h1>{esc(name)}</h1>
 <div class="stats"><span><b>{len(xs)}</b>{"story" if len(xs) == 1 else "stories"} this edition</span><span><b>{dev}</b>still developing</span><span><b>{esc(sh.stamp(xs[0]))}</b>latest flash</span><span><b>{esc(", ".join(secs))}</b>{"section" if len(secs) == 1 else "sections"}</span></div></div></header>
 <div class="wrap place-grid">
-<div>{lead}<ul class="rows">{"".join(row(x) for x in xs)}</ul></div>
+<div>{lead}<h2 class="side-h" style="margin-top:8px">{len(xs)} {"story" if len(xs) == 1 else "stories"} from {esc(name)}</h2><ul class="rows">{"".join(row(x) for x in xs)}</ul></div>
 <aside class="aside">{mapf}{else_}</aside>
 </div>
 </main>'''

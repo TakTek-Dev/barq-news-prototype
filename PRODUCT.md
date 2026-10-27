@@ -8,7 +8,7 @@ web
 
 Static HTML/CSS/JS, no framework. Python helper scripts generate the marks, fonts, map, photos and pages (same pattern as TakTek's other news prototypes). Delivered on GitHub Pages under TakTek-Dev only when the user says «ارفع». Commits only on request.
 
-Build order: `python -I tools/fonts.py` → `brand.py` → `geo.py` → `edition.py` → `photos.py` → `build.py` → `pages.py` → `book.py` → `og.py` (+ `node --experimental-websocket tools/shot.mjs http://localhost:8263/tools/out/og.html assets/og.png 1200 630 view`) → `links.py`. Bump `V` in tools/shell.py on any asset change. Never hand-edit the built HTML. Preview: «barq» on port 8263 in الارسال/.claude/launch.json. Loader QA: `MARKS=300,460,620,900 node --experimental-websocket tools/frames.mjs "http://localhost:8263/home.html?loader" out.png`.
+Build order: `python -I tools/fonts.py` → `brand.py` → `geo.py` → `edition.py` → `photos.py` → `build.py` → `pages.py` → `book.py` → `og.py` (+ `node --experimental-websocket tools/shot.mjs http://localhost:8263/tools/out/og.html assets/og.png 1200 630 view`) → `links.py`. Bump `V` in tools/shell.py on any asset change. Never hand-edit the built HTML. Preview: «barq» on port 8263 in الارسال/.claude/launch.json. Loader QA: `MARKS=300,460,620,900 node --experimental-websocket tools/frames.mjs "http://localhost:8263/home.html?loader" out.png`. Page QA: `node --experimental-websocket tools/qa.mjs http://localhost:8263/ <visual-qa probe> out.json <pages…> -- 375,768,1024,1280,1440` then `python -I tools/qa_sum.py out.json`; keyboard walk: `tools/keys.mjs <url> [tabs] [width]`; published site: `python -I tools/live.py`.
 
 ## Users
 

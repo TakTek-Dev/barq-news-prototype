@@ -18,7 +18,7 @@ def lead_block(used):
     subs = [sh.BY[i] for i in E.get('lead_subs', [])] or latest(3, used)
     for x in subs:
         used.add(x['id'])
-    sub = ''.join(f'<a href="{url(x)}">{kicker(x)}<h3 class="h-xs">{esc(x["headline"])}</h3>{meta(x, st=False)}</a>' for x in subs)
+    sub = ''.join(f'<a href="{url(x)}">{kicker(x)}<h2 class="h-xs">{esc(x["headline"])}</h2>{meta(x, st=False)}</a>' for x in subs)
     return f'''<article class="lead">
 <a href="{url(s)}" aria-hidden="true" tabindex="-1">{photo(s.get('photo'), '', '(max-width: 1024px) 100vw, 58vw', eager=True)}</a>
 <div class="txt">{kicker(s)}
