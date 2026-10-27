@@ -10,7 +10,7 @@ import os
 import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-V = '3'                                         # bump on any asset change (Chrome caches hard)
+V = '4'                                         # bump on any asset change (Chrome caches hard)
 SITE = 'Barq News'
 BASE_URL = 'https://taktek-dev.github.io/barq-news-prototype/'
 E = json.load(open(os.path.join(ROOT, 'tools', 'edition.json'), encoding='utf-8'))
@@ -287,7 +287,10 @@ def flash_map(items, cls='map', labels=True, focus=None, r=None, zoom=False, asp
                 continue
             x, y = project(*ll)
             tx = x + dx * (fs / 15)
-            if zoom and not (vx < x < vx + vw and vy < y < vy + vh and vx < tx and tx + len(name) * fs * .66 < vx + vw):
+            m = fs * .3                                     # the label's whole box, cap height to baseline, sits inside the frame
+            fits = (vx + m < tx and tx + len(name) * fs * .66 < vx + vw - m
+                    and vy + m < y - fs * .5 and y + fs * .4 < vy + vh - m)
+            if zoom and not fits:
                 continue                                    # a label cut by the frame is worse than none
             if zoom and name in ('WEST BANK', 'NAQAB') and k < .5:
                 continue
