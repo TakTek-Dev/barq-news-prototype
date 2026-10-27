@@ -34,10 +34,10 @@ def radar():
     newest = latest(6)
     lst = ''.join(f'<li><a href="{url(s)}" data-id="{s["id"]}" style="--c:var(--age-{sh.age_band(s)})"><span class="t"><i></i>{esc(sh.stamp(s))} · {esc(s["place"])}</span><span class="h">{esc(s["headline"])}</span></a></li>' for s in newest)
     return f'''<aside class="radar" aria-labelledby="radar-h">
-<div class="radar-hd"><h2 id="radar-h">Flash map</h2><p>{len(on_map)} places · fading with age</p></div>
+<div class="radar-hd"><h2 id="radar-h"><a href="map.html" class="hl">Flash map</a></h2><p>{len(on_map)} places · fading with age</p></div>
 <div class="radar-body">{sh.flash_map(on_map)}<ol class="flist">{lst}</ol></div>
 {sh.age_key()}
-<a class="more" href="live.html">Every flash on the wire {sh.icon('i-right')}</a>
+<div style="display:flex;gap:20px;flex-wrap:wrap"><a class="more" href="map.html">Open the map {sh.icon('i-right')}</a><a class="more" href="live.html">Every flash on the wire {sh.icon('i-right')}</a></div>
 </aside>'''
 
 
