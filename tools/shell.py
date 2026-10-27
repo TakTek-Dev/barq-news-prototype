@@ -7,9 +7,10 @@ import datetime as dt
 import html
 import json
 import os
+import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-V = '2'                                         # bump on any asset change (Chrome caches hard)
+V = '3'                                         # bump on any asset change (Chrome caches hard)
 SITE = 'Barq News'
 BASE_URL = 'https://taktek-dev.github.io/barq-news-prototype/'
 E = json.load(open(os.path.join(ROOT, 'tools', 'edition.json'), encoding='utf-8'))
@@ -74,6 +75,43 @@ def age_band(s):
 
 def url(s):
     return f"{C.R}story/{s['id']}.html"
+
+
+def slug(t):
+    return re.sub(r'[^a-z0-9]+', '-', t.lower().replace("'", '')).strip('-')
+
+
+# a story's place, as a page: «Deir Jarir, Ramallah» -> Deir Jarir; «Allenby crossing / Birzeit» -> Birzeit
+PLACE_OVERRIDE = {'Jenin, Nablus, Ramallah, Bethlehem': 'West Bank', 'Nablus, Ramallah and Salfit governorates': 'West Bank',
+                  'Gaza City, Jabalia, Khan Younis': 'Gaza Strip', 'Al-Aqsa Mosque compound, Old City': 'Al-Aqsa Mosque compound',
+                  "E1, between Jerusalem and Ma'ale Adumim": 'E1'}
+
+
+def place_name(s):
+    p = s['place']
+    if p in PLACE_OVERRIDE:
+        return PLACE_OVERRIDE[p]
+    return p.split(' / ')[-1].strip() if ' / ' in p else p.split(',')[0].strip()
+
+
+def place_url(s):
+    return f"{C.R}places/{slug(place_name(s))}.html"
+
+
+def places():
+    """Place name -> its stories (newest first), for every story that has a point on the map."""
+    out = {}
+    for s in sorted(S, key=when, reverse=True):
+        if s.get('ll'):
+            out.setdefault(place_name(s), []).append(s)
+    return out
+
+
+def outlet(name):
+    """«Times of Israel (live blog)» -> Times of Israel; «Al Jazeera via Yahoo (...)» -> Al Jazeera."""
+    n = re.sub(r'\s*\(.*?\)', '', name).strip()
+    n = n.split(' via ')[0].strip()
+    return {'AP': 'Associated Press'}.get(n, n)
 
 
 # ---------------------------------------------------------------- icons and marks
@@ -191,25 +229,73 @@ def project(lat, lon):
     return (p['ox'] + (lon * p['k'] - p['x0']) * p['s'], p['m'] + (p['y1'] - lat) * p['s'])
 
 
-def flash_map(items, cls='map', labels=True, focus=None, r=7):
+REGION_LABELS = (('GAZA', (31.47, 34.36), -78), ('WEST BANK', (32.3, 35.4), 14), ('JERUSALEM', (31.78, 35.23), 34),
+                 ('HAIFA', (32.8, 34.99), -76), ('NAQAB', (30.75, 34.8), -24), ('HEBRON', (31.53, 35.1), 14),
+                 ('RAMALLAH', (31.9, 35.2), 14), ('NABLUS', (32.22, 35.26), 14), ('JENIN', (32.46, 35.3), 14),
+                 ('KHAN YOUNIS', (31.345, 34.303), 14), ('GAZA CITY', (31.515, 34.445), 14), ('TULKARM', (32.31, 35.03), -66),
+                 ('BETHLEHEM', (31.705, 35.2), 14), ('BEERSHEBA', (31.25, 34.79), 14))
+MAJOR = {'GAZA', 'WEST BANK', 'JERUSALEM', 'HAIFA', 'NAQAB'}
+
+
+def view_box(points, aspect=1.0, pad=0.3, min_span=60):
+    """Smallest box round the points, padded, at the given width/height ratio."""
+    xs, ys = [p[0] for p in points], [p[1] for p in points]
+    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+    w, h = max(x1 - x0, min_span), max(y1 - y0, min_span / aspect)
+    w, h = w * (1 + pad * 2), h * (1 + pad * 2)
+    if w / h < aspect:
+        w = h * aspect
+    else:
+        h = w / aspect
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    return cx - w / 2, cy - h / 2, w, h
+
+
+def flash_map(items, cls='map', labels=True, focus=None, r=None, zoom=False, aspect=1.0, context=(), label=None, span=60):
+    """The ground, every flash as a dot coloured by its age. zoom=True frames the dots (and focus)
+    at the given aspect; dot size and label size follow the zoom so they read the same at any scale."""
+    pts = [project(*s['ll']) for s in items if s.get('ll')] + ([project(*focus)] if focus else [])
+    if zoom and pts:
+        vx, vy, vw, vh = view_box(pts, aspect, min_span=span)
+    else:
+        vx, vy, vw, vh = 0, 0, GEO['w'], GEO['h']
+    k = vw / GEO['w']
+    rr = r or max(vw / 58, 1.1)
     dots = []
+    ids = {s['id'] for s in items}
+    for s in sorted(context, key=when):
+        if s.get('ll') and s['id'] not in ids:
+            x, y = project(*s['ll'])
+            dots.append(f'<circle class="ctx" cx="{x:.1f}" cy="{y:.1f}" r="{rr * .62:.2f}"/>')
     for s in sorted(items, key=when):
         if not s.get('ll'):
             continue
         x, y = project(*s['ll'])
         band = age_band(s)
         now = ' now' if s['status'] == 'developing' and band == 1 else ''
-        dots.append(f'<a href="{url(s)}" class="fl{now}" data-id="{s["id"]}" data-t="{int(when(s).timestamp())}" style="--c:var(--age-{band})" aria-label="{esc(s["place"])}: {esc(s["headline"])}">'
-                    f'<circle class="ring" cx="{x:.1f}" cy="{y:.1f}" r="{r}"/><circle class="core" cx="{x:.1f}" cy="{y:.1f}" r="{r}"/></a>')
+        dots.append(f'<a href="{url(s)}" class="fl{now}" data-id="{s["id"]}" data-t="{int(when(s).timestamp())}" data-age="{band}" style="--c:var(--age-{band})" aria-label="{esc(s["place"])}: {esc(s["headline"])}">'
+                    f'<circle class="ring" cx="{x:.1f}" cy="{y:.1f}" r="{rr:.2f}"/><circle class="core" cx="{x:.1f}" cy="{y:.1f}" r="{rr:.2f}"/></a>')
     if focus:
         x, y = project(*focus)
-        dots.append(f'<g class="fl now" style="--c:var(--plasma)"><circle class="ring" cx="{x:.1f}" cy="{y:.1f}" r="16"/><circle class="core" cx="{x:.1f}" cy="{y:.1f}" r="16"/></g>')
+        fr = rr * 1.7
+        dots.append(f'<g class="fl now focus" style="--c:var(--plasma)"><circle class="ring" cx="{x:.1f}" cy="{y:.1f}" r="{fr:.2f}"/><circle class="core" cx="{x:.1f}" cy="{y:.1f}" r="{fr:.2f}"/></g>')
     lab = ''
     if labels:
-        for name, ll, dx in (('GAZA', (31.47, 34.36), -78), ('WEST BANK', (32.3, 35.4), 14), ('JERUSALEM', (31.78, 35.23), 34), ('HAIFA', (32.8, 34.99), -76), ('NAQAB', (30.75, 34.8), -24)):
+        fs = 15 * max(k, .2) if not zoom else max(min(vw, vh) / 24, 2.2)   # by the short side, so wide frames don't shout
+        for name, ll, dx in REGION_LABELS:
+            if not zoom and name not in MAJOR:
+                continue
             x, y = project(*ll)
-            lab += f'<text class="lbl" x="{x + dx:.0f}" y="{y + 4:.0f}">{name}</text>'
-    return (f'<svg class="{cls}" viewBox="0 0 {GEO["w"]} {GEO["h"]}" role="group" aria-label="Map of Palestine with the places of recent flashes">'
+            tx = x + dx * (fs / 15)
+            if zoom and not (vx < x < vx + vw and vy < y < vy + vh and vx < tx and tx + len(name) * fs * .66 < vx + vw):
+                continue                                    # a label cut by the frame is worse than none
+            if zoom and name in ('WEST BANK', 'NAQAB') and k < .5:
+                continue
+            off = dx * (fs / 15)
+            lab += f'<text class="lbl" x="{x + off:.1f}" y="{y + fs * .3:.1f}" style="font-size:{fs:.2f}px">{name}</text>'
+    aria = label or 'Map of Palestine with the places of recent flashes'
+    zc = ' zoomed' if zoom else ''
+    return (f'<svg class="{cls}{zc}" viewBox="{vx:.1f} {vy:.1f} {vw:.1f} {vh:.1f}" role="group" aria-label="{esc(aria)}">'
             f'<path class="land" d="{GEO["land"]}"/><path class="pse" d="{GEO["pse"]}"/>{lab}{"".join(dots)}</svg>')
 
 
@@ -253,7 +339,7 @@ def age_key():
 
 # ---------------------------------------------------------------- shell
 NAV = [('gaza', 'Gaza'), ('west-bank', 'West Bank'), ('jerusalem', 'Jerusalem'), ('prisoners', 'Prisoners'),
-       ('politics', 'Politics'), ('world', 'World'), ('life', 'Life'), ('live', 'The wire')]
+       ('politics', 'Politics'), ('world', 'World'), ('life', 'Life'), ('live', 'The wire'), ('map', 'Map')]
 
 
 def head(title, desc, path, og=None, extra=''):
@@ -330,8 +416,8 @@ def foot():
 <div><a class="logo" href="{C.R}home.html" aria-label="Barq News, home">{wordmark(label=False)}</a>
 <p>Breaking news from Palestine, in English. First the flash, then the facts: every story says when it was first seen, whether it is still developing, and where it comes from.</p></div>
 <div><h3>Sections</h3><ul>{secs}</ul></div>
-<div><h3>Barq</h3><ul><li><a href="{C.R}live.html">The wire</a></li><li><a href="{C.R}alerts.html">Alerts</a></li><li><a href="{C.R}search.html">Search</a></li><li><a href="{C.R}about.html">About and standards</a></li></ul></div>
-<div><h3>This prototype</h3><ul><li><a href="{C.R}index.html">Identity book</a></li><li><a href="{C.R}credits.html">Photo credits</a></li><li><a href="{C.R}about.html#corrections">Corrections</a></li></ul></div>
+<div><h3>Barq</h3><ul><li><a href="{C.R}live.html">The wire</a></li><li><a href="{C.R}map.html">Flash map</a></li><li><a href="{C.R}archive.html">Archive</a></li><li><a href="{C.R}sources.html">Our sources</a></li><li><a href="{C.R}search.html">Search</a></li></ul></div>
+<div><h3>Reach us</h3><ul><li><a href="{C.R}alerts.html">Alerts</a></li><li><a href="{C.R}tips.html">Send a tip</a></li><li><a href="{C.R}about.html">About and standards</a></li><li><a href="{C.R}about.html#corrections">Corrections</a></li><li><a href="{C.R}privacy.html">Privacy</a></li><li><a href="{C.R}index.html">Identity book</a></li><li><a href="{C.R}credits.html">Photo credits</a></li></ul></div>
 </div>
 <div class="foot-base"><span>Design prototype by TakTek · stories summarised from the outlets each one cites · edition of {day(NOW, True)}</span>
 <span class="theme-sw" role="group" aria-label="Colour theme"><button type="button" data-theme-set="light">Light</button><button type="button" data-theme-set="auto">Auto</button><button type="button" data-theme-set="dark">Dark</button></span></div>

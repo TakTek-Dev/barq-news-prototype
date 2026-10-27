@@ -125,9 +125,9 @@ def main():
 <p class="lede">The loader runs once a session, 1.7 seconds, and skips on a click or Escape: the bolt strikes down into place, the screen flashes twice like real lightning, the letters rise and the bolt cools from plasma to white. On the page, the map's dots land in the order they happened; the wire runs and pauses on hover; developing dots breathe. With reduced motion, all of it is still.</p>
 <p style="margin-top:22px"><a class="btn" href="home.html?loader">Replay the loader</a></p></div></section>
 
-<section><div class="wrap"><span class="num">08 · THE SITE</span><h2>{len(S)} stories, 7 sections, one wire.</h2>
-<p class="lede">Home, a page for every story, seven sections, the wire, alerts, search, about and standards, credits and a 404.</p>
-<div class="tags" style="margin-top:20px">{''.join(f'<a href="{p}">{lab}</a>' for p, lab in [("home.html", "Home"), ("live.html", "The wire"), ("gaza.html", "Gaza"), ("west-bank.html", "West Bank"), ("jerusalem.html", "Jerusalem"), (sh.url(lead), "A story"), ("alerts.html", "Alerts"), ("search.html", "Search"), ("about.html", "About"), ("404.html", "404")])}</div></div></section>
+<section><div class="wrap"><span class="num">08 · THE SITE</span><h2>{len(S)} stories, {len(sh.places())} places, one wire.</h2>
+<p class="lede">Home, a page for every story, seven sections, the wire, the flash map and a page for every place on it, the archive, our sources, alerts, send a tip, search, about and standards, privacy, credits and a 404.</p>
+<div class="tags" style="margin-top:20px">{''.join(f'<a href="{p}">{lab}</a>' for p, lab in [("home.html", "Home"), ("live.html", "The wire"), ("gaza.html", "Gaza"), ("west-bank.html", "West Bank"), ("jerusalem.html", "Jerusalem"), (sh.url(lead), "A story"), ("map.html", "Flash map"), ("places/hebron.html", "A place"), ("archive.html", "Archive"), ("sources.html", "Sources"), ("alerts.html", "Alerts"), ("tips.html", "Send a tip"), ("search.html", "Search"), ("about.html", "About"), ("privacy.html", "Privacy"), ("404.html", "404")])}</div></div></section>
 </main>'''
     page = sh.head('Identity book', 'The Barq News identity: the q that strikes, ion violet, Funnel and Spline Sans Mono.', 'index.html', extra=extra) + sh.top() + body + sh.foot()
     page = page.replace('class="wm"', 'class="wm"')

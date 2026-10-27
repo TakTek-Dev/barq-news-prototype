@@ -217,13 +217,45 @@
       if (!ws.length) { out.innerHTML = ''; count.textContent = `${idx.length} stories in this edition`; return; }
       const hits = idx.filter((it) => ws.every((w) => it.k.includes(w)));
       count.textContent = `${hits.length} ${hits.length === 1 ? 'story' : 'stories'} for “${sbox.value.trim()}”`;
-      out.innerHTML = '<ul class="rows">' + hits.map((it) => `<li><a class="row" href="${base}${it.u}">${it.p ? `<div class="ph"><img src="${base}${it.p}" alt="" loading="lazy" width="400" height="300"></div>` : '<div class="ph plate"></div>'}<div class="txt"><span class="kicker">${esc(it.s)}</span><h3 class="h-s">${mark(it.h, ws)}</h3><p class="dek">${mark(it.d, ws)}</p><span class="meta"><time>${esc(it.w)}</time></span></div></a></li>`).join('') + '</ul>';
+      out.innerHTML = '<ul class="rows">' + hits.map((it) => `<li><a class="row" href="${base}${it.u}">${it.p ? `<div class="ph"><img src="${base}${it.p}" alt="" loading="lazy" width="400" height="300"></div>` : '<div class="ph plate"><svg viewBox="0 0 10 10" aria-hidden="true"><path d="M6.2.6 2 5.6h2.9L3.6 9.4 8 4.2H5.1z" fill="currentColor"/></svg></div>'}<div class="txt"><span class="kicker">${esc(it.s)}</span><h3 class="h-s">${mark(it.h, ws)}</h3><p class="dek">${mark(it.d, ws)}</p><span class="meta"><time>${esc(it.w)}</time></span></div></a></li>`).join('') + '</ul>';
     };
     const q0 = new URLSearchParams(location.search).get('q'); if (q0) sbox.value = q0;
     sbox.addEventListener('input', go);
   }
 
-  // alerts form (prototype: nothing is sent)
-  const af = $('#alerts-form');
-  if (af) af.addEventListener('submit', (e) => { e.preventDefault(); $('.done', af.parentNode).classList.add('on'); af.querySelector('button[type=submit]').disabled = true; });
+  // alerts and tip forms (prototype: nothing is sent)
+  $$('#alerts-form, #tip-form').forEach((f) => f.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const need = $('[required]', f);
+    if (need && !need.value.trim()) { need.setAttribute('aria-invalid', 'true'); need.focus(); return; }
+    const done = $('.done', f.parentNode);
+    done.classList.add('on'); done.setAttribute('tabindex', '-1'); done.focus();
+    $('button[type=submit]', f).disabled = true;
+  }));
+
+  // flash map page: filter dots and list by age; a row lights its dot and a dot its row
+  const ageF = $('[data-agefilter]');
+  if (ageF) {
+    const dots = $$('.mapstage .fl'), rows = $$('.maplist li[data-age]'), out = $('#age-count');
+    ageF.addEventListener('click', (e) => {
+      const b = e.target.closest('button'); if (!b) return;
+      $$('button', ageF).forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      const max = b.dataset.age === 'all' ? 9 : +b.dataset.age;
+      dots.forEach((f) => { f.style.display = +f.dataset.age <= max ? '' : 'none'; });
+      rows.forEach((li) => { li.hidden = +li.dataset.age > max; });
+      $$('.mgroup').forEach((g) => { const any = $$('li[data-age]', g); if (any.length) g.hidden = any.every((li) => li.hidden); });
+      const n = dots.filter((f) => f.style.display !== 'none').length;
+      out.textContent = `${n} ${n === 1 ? 'flash' : 'flashes'}`;
+    });
+    $$('.maplist a[data-id]').forEach((a) => {
+      const on = (v) => dots.forEach((f) => f.classList.toggle('hot', v && f.dataset.id === a.dataset.id));
+      a.addEventListener('mouseenter', () => on(true)); a.addEventListener('mouseleave', () => on(false));
+      a.addEventListener('focus', () => on(true)); a.addEventListener('blur', () => on(false));
+    });
+    dots.forEach((f) => {
+      const a = $(`.maplist a[data-id="${f.dataset.id}"]`);
+      f.addEventListener('mouseenter', () => a && a.classList.add('on'));
+      f.addEventListener('mouseleave', () => a && a.classList.remove('on'));
+    });
+  }
 })();
