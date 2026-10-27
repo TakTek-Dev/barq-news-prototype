@@ -87,7 +87,8 @@ def section(slug, label, stand):
     sh.C.R = ''
     xs = in_section(slug)
     dev = len([s for s in xs if s['status'] == 'developing'])
-    lead, rest = xs[0], xs[1:]
+    lead = next((s for s in xs if s.get('photo')), xs[0])      # the section opens on a photo when it has one
+    rest = [s for s in xs if s is not lead]
     cards = rest[:3]
     rows_ = rest[3:]
     on_map = [s for s in xs if s.get('ll')]
